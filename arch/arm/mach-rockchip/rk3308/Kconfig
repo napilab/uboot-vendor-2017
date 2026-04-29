@@ -1,0 +1,24 @@
+if ROCKCHIP_RK3308
+
+config TARGET_EVB_RK3308
+	bool "EVB_RK3308"
+	select BOARD_LATE_INIT
+
+config TARGET_ROCKPIS_RK3308
+	bool "ROCK PI S Board"
+	help
+	  ROCK PI S Board is a ROCKCHIP RK3308 based SBC by Radxa.
+	  It includes Ethernet, WIFI, BT, 2 USB, expansion interface, etc.
+
+config SYS_SOC
+	default "rockchip"
+
+config SYS_MALLOC_F_LEN
+	default 0x400
+
+config SPL_SERIAL_SUPPORT
+	default y
+
+source "board/rockchip/evb_rk3308/Kconfig"
+
+endif
