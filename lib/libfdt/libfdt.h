@@ -7,8 +7,8 @@
  * SPDX-License-Identifier:     GPL-2.0+ BSD-2-Clause
  */
 
-#include <libfdt_env.h>
-#include <fdt.h>
+#include "libfdt_env.h"
+#include "fdt.h"
 
 #define FDT_FIRST_SUPPORTED_VERSION	0x10
 #define FDT_LAST_SUPPORTED_VERSION	0x11
