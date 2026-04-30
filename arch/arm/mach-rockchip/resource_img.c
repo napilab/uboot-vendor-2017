@@ -114,7 +114,7 @@ static int resource_image_check_header(const struct resource_img_hdr *hdr)
 	ret = memcmp(RESOURCE_MAGIC, hdr->magic, RESOURCE_MAGIC_SIZE);
 	if (ret) {
 		printf("bad resource image magic: %s\n",
-		       hdr->magic ? hdr->magic : "none");
+		       hdr->magic[0] ? hdr->magic : "none");
 		ret = -EINVAL;
 	}
 	debug("resource image header:\n");
