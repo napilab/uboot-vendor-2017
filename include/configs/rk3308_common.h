@@ -55,10 +55,10 @@
 	"hw_conf_addr_r=0x00700000\0" \
 	"fdt_overlay_addr_r=0x01e00000\0" \
 	"fdt_addr_r=0x01f00000\0" \
-	"kernel_addr_no_bl32_r=0x00280000\0" \
-	"kernel_addr_r=0x00680000\0" \
+	"kernel_addr_no_bl32_r=0x02080000\0" \
+	"kernel_addr_r=0x02080000\0" \
 	"kernel_addr_c=0x02480000\0" \
-	"ramdisk_addr_r=0x04000000\0"
+	"ramdisk_addr_r=0x06000000\0"
 #else
 #define ENV_MEM_LAYOUT_SETTINGS \
 	"scriptaddr=0x00500000\0" \
