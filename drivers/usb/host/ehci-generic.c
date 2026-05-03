@@ -46,12 +46,10 @@ static int ehci_usb_probe(struct udevice *dev)
 
 		for (i = 0; i < clock_nb; i++) {
 			err = clk_get_by_index(dev, i, &priv->clocks[i]);
-			printf("DBG: ehci clk_get[%d] returned %d\n", i, err);
 
 			if (err < 0)
 				break;
 			err = clk_enable(&priv->clocks[i]);
-			printf("DBG: ehci clk_enable[%d] returned %d\n", i, err);
 			if (err && err != -ENOSYS) {
 				pr_err("failed to enable clock %d\n", i);
 				clk_free(&priv->clocks[i]);
@@ -96,28 +94,16 @@ static int ehci_usb_probe(struct udevice *dev)
 	}
 
 	err = generic_phy_get_by_index(dev, 0, &priv->phy);
-	printf("DBG: ehci_usb_probe phy_get_by_index returned %d\n", err);
-
 	if (err) {
 		if (err != -ENOENT) {
 			pr_err("failed to get usb phy\n");
 			goto reset_err;
 		}
 	} else {
-		err = generic_phy_init(&priv->phy);
 
+		err = generic_phy_init(&priv->phy);
 		if (err) {
 			pr_err("failed to init usb phy\n");
-			goto reset_err;
-		}
-		printf("DBG: phy_init OK, calling power_on\n");   
-
-		err = generic_phy_power_on(&priv->phy);
-		printf("DBG: power_on returned %d\n", err);   
-
-		if (err) {
-			pr_err("failed to power on usb phy\n");
-			generic_phy_exit(&priv->phy);
 			goto reset_err;
 		}
 	}
@@ -160,15 +146,12 @@ static int ehci_usb_remove(struct udevice *dev)
 	if (ret)
 		return ret;
 
-  	if (generic_phy_valid(&priv->phy)) {
-                ret = generic_phy_power_off(&priv->phy);
-                if (ret)
-                        return ret;
+	if (generic_phy_valid(&priv->phy)) {
+		ret = generic_phy_exit(&priv->phy);
+		if (ret)
+			return ret;
+	}
 
-                ret = generic_phy_exit(&priv->phy);
-                if (ret)
-                        return ret;
-        }
 	ret =  reset_release_all(priv->resets, priv->reset_count);
 	if (ret)
 		return ret;

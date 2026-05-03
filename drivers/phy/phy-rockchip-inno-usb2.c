@@ -12,9 +12,6 @@
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 
-/*   dmn */ 
-#include <clk.h>
-
 #include "../usb/gadget/dwc2_udc_otg_priv.h"
 
 #define U2PHY_BIT_WRITEABLE_SHIFT	16
@@ -154,7 +151,6 @@ struct rockchip_usb2phy {
 	u8		primary_retries;
 	void __iomem	*grf_base;
 	void __iomem	*usbgrf_base;
-	struct clk	phyclk;
 	const struct rockchip_usb2phy_cfg	*phy_cfg;
 };
 
@@ -392,22 +388,10 @@ void otg_phy_init(struct dwc2_udc *dev)
 
 static int rockchip_usb2phy_init(struct phy *phy)
 {
-	printf("DBG: rockchip_usb2phy_init called, phy->id=%lu\n", phy->id);
 	struct udevice *parent = phy->dev->parent;
 	struct rockchip_usb2phy *rphy = dev_get_priv(parent);
 	const struct rockchip_usb2phy_port_cfg *port_cfg;
 	void __iomem *base = get_reg_base(rphy);
-	int ret;
-
-	ret = clk_enable(&rphy->phyclk);
-	printf("DBG: clk_enable returned %d\n", ret);
-	if (ret && ret != -ENOSYS) {
-		dev_err(phy->dev, "failed to enable phyclk (ret=%d)\n", ret);
-		return ret;
-	}
-
-	printf("DBG: base=%p grf_base=%p usbgrf_base=%p\n",
-	       base, rphy->grf_base, rphy->usbgrf_base);
 
 	if (phy->id == USB2PHY_PORT_OTG) {
 		port_cfg = &rphy->phy_cfg->port_cfgs[USB2PHY_PORT_OTG];
@@ -418,12 +402,7 @@ static int rockchip_usb2phy_init(struct phy *phy)
 		return -EINVAL;
 	}
 
-	printf("DBG: writing to base+0x%x for phy->id=%lu\n",
-	       port_cfg->phy_sus.offset, phy->id);
 	property_enable(base, &port_cfg->phy_sus, false);
-	printf("DBG: after write, *(base+0x%x)=0x%08x\n",
-	       port_cfg->phy_sus.offset,
-	       readl(base + port_cfg->phy_sus.offset));
 
 	/* waiting for the utmi_clk to become stable */
 	udelay(2000);
@@ -503,7 +482,6 @@ static int rockchip_usb2phy_probe(struct udevice *dev)
 	struct rockchip_usb2phy *rphy = dev_get_priv(dev);
 	struct udevice *parent = dev->parent;
 	u32 reg, index;
-	int ret;
 
 	if (!strncmp(parent->name, "root_driver", 11) &&
 	    dev_read_bool(dev, "rockchip,grf"))
@@ -557,13 +535,6 @@ static int rockchip_usb2phy_probe(struct udevice *dev)
 	if (rphy->phy_cfg->phy_tuning)
 		rphy->phy_cfg->phy_tuning(rphy);
 
-	ret = clk_get_by_name(dev, "phyclk", &rphy->phyclk);
-	printf("DBG: clk_get_by_name returned %d\n", ret);
-	if (ret) {
-		dev_err(dev, "failed to get the phyclk (ret=%d)\n", ret);
-		return ret;
-	}
-
 	return 0;
 }
 
@@ -583,22 +554,6 @@ static struct phy_ops rockchip_usb2phy_ops = {
 	.init = rockchip_usb2phy_init,
 	.exit = rockchip_usb2phy_exit,
 	.of_xlate = rockchip_usb2phy_of_xlate,
-};
-
-static const struct rockchip_usb2phy_cfg rk3308_phy_cfgs[] = {
-	{
-		.reg		= 0x100,
-		.num_ports	= 2,
-		.clkout_ctl	= { 0x0108, 4, 4, 1, 0 },
-		.port_cfgs	= {
-			[USB2PHY_PORT_OTG] = {
-				.phy_sus	= { 0x0100, 1, 0, 2, 1 },
-			},
-			[USB2PHY_PORT_HOST] = {
-				.phy_sus	= { 0x0104, 1, 0, 2, 1 },
-			}
-		},
-	},
 };
 
 static const struct rockchip_usb2phy_cfg rk1808_phy_cfgs[] = {
@@ -908,16 +863,14 @@ static const struct rockchip_usb2phy_cfg rv1108_phy_cfgs[] = {
 	{ /* sentinel */ }
 };
 
-
 static const struct udevice_id rockchip_usb2phy_ids[] = {
 	{ .compatible = "rockchip,rk1808-usb2phy", .data = (ulong)&rk1808_phy_cfgs },
 	{ .compatible = "rockchip,rk3128-usb2phy", .data = (ulong)&rk312x_phy_cfgs },
 	{ .compatible = "rockchip,rk322x-usb2phy", .data = (ulong)&rk322x_phy_cfgs },
-/*	{ .compatible = "rockchip,rk3308-usb2phy", .data = (ulong)&rk3328_phy_cfgs }, */
-/* 	{ .compatible = "rockchip,rk3328-usb2phy", .data = (ulong)&rk3328_phy_cfgs }, */
+	{ .compatible = "rockchip,rk3308-usb2phy", .data = (ulong)&rk3328_phy_cfgs },
+	{ .compatible = "rockchip,rk3328-usb2phy", .data = (ulong)&rk3328_phy_cfgs },
 	{ .compatible = "rockchip,rk3368-usb2phy", .data = (ulong)&rk3368_phy_cfgs },
 	{ .compatible = "rockchip,rv1108-usb2phy", .data = (ulong)&rv1108_phy_cfgs },
-	{ .compatible = "rockchip,rk3308-usb2phy", .data = (ulong)&rk3308_phy_cfgs },
 	{ }
 };
 
