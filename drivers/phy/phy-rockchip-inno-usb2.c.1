@@ -406,9 +406,6 @@ static int rockchip_usb2phy_init(struct phy *phy)
 		return ret;
 	}
 
-	printf("DBG: base=%p grf_base=%p usbgrf_base=%p\n",
-	       base, rphy->grf_base, rphy->usbgrf_base);
-
 	if (phy->id == USB2PHY_PORT_OTG) {
 		port_cfg = &rphy->phy_cfg->port_cfgs[USB2PHY_PORT_OTG];
 	} else if (phy->id == USB2PHY_PORT_HOST) {
@@ -418,12 +415,7 @@ static int rockchip_usb2phy_init(struct phy *phy)
 		return -EINVAL;
 	}
 
-	printf("DBG: writing to base+0x%x for phy->id=%lu\n",
-	       port_cfg->phy_sus.offset, phy->id);
 	property_enable(base, &port_cfg->phy_sus, false);
-	printf("DBG: after write, *(base+0x%x)=0x%08x\n",
-	       port_cfg->phy_sus.offset,
-	       readl(base + port_cfg->phy_sus.offset));
 
 	/* waiting for the utmi_clk to become stable */
 	udelay(2000);

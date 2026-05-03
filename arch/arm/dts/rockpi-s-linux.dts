@@ -269,6 +269,15 @@
 		status = "okay";
 	};
 
+	vcc5v0_otg: vcc5v0-otg {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;
+		regulator-name = "vcc5v0_otg";
+		regulator-always-on;
+		regulator-boot-on;
+	};
+
 };
 
 &display_subsystem {
@@ -301,10 +310,11 @@
 };
 
 &u2phy_otg {
-	status = "okay";
+	status = "disabled";
 };
 
 &u2phy_host {
+	phy-supply = <&vcc5v0_otg>;
 	status = "okay";
 };
 
@@ -317,7 +327,7 @@
 };
 
 &usb20_otg {
-	status = "okay";
+	status = "disabled";
 };
 
 &route_rgb {
